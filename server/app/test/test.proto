@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package test;
+
+option go_package = "test/";
+
+enum RouterId {
+  Hello = 0;
+  Hi = 1;
+}
+
+message HelloAsk{
+  string msg = 1;
+}
+message HelloRsp{
+  string msg = 1;
+}
+
+message HiTell{
+  string msg = 1;
+}
