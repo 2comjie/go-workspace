@@ -35,5 +35,6 @@ func main() {
 		}
 		time.Sleep(time.Second)
 	}
+
 	syncx.WaitUntilSignaled()
 }

@@ -18,6 +18,7 @@ type Client struct {
 	reqId             atomic.Uint32
 	rawConn           *websocket.Conn
 	rspMsgHandlerMap  sync.Map
+	pushMsgHandlerMap map[uint32]map[uint32]S2CMsgHandler
 	heartbeatInterval time.Duration
 	serializer        codec.ISerializer
 	ctx               context.Context
@@ -31,6 +32,7 @@ func NewClient(serializer codec.ISerializer, heartbeatInterval time.Duration) *C
 		reqId:             atomic.Uint32{},
 		rawConn:           nil,
 		rspMsgHandlerMap:  sync.Map{},
+		pushMsgHandlerMap: make(map[uint32]map[uint32]S2CMsgHandler),
 		heartbeatInterval: heartbeatInterval,
 		serializer:        serializer,
 		ctx:               ctx,
@@ -118,7 +120,19 @@ func (c *Client) handleOnMsg(readData []byte) {
 	isPushPacket := msgPacket.IsPushPacket()
 	msgBodyBytes := msgPacket.Body()
 	if isPushPacket {
-		// TODO
+		serviceId := msgPacket.ServiceId()
+		routerId := msgPacket.RouterId()
+		handler, ok := c.getPushHandler(serviceId, routerId)
+		if !ok {
+			return
+		}
+		msgBody := reflectx.NewPointerIns(handler.msgType)
+		err := c.serializer.Unmarshal(msgBodyBytes, msgBody)
+		if err != nil {
+			logx.Errorf("unmarshal err %+v", err)
+			return
+		}
+		handler.handler(msgBody)
 	} else {
 		reqId := msgPacket.ReqId()
 		handler, ok := c.getRspMsgHandler(reqId)
@@ -182,4 +196,34 @@ func Ask[Req any, Rsp any](client *Client, serviceId uint32, routerId uint32, re
 
 func Tell[Req any](client *Client, serviceId uint32, routerId uint32, req any) error {
 	return client.tell(serviceId, routerId, req)
+}
+
+func RegisterPushHandler[Push any](client *Client, serviceId uint32, routerId uint32, handler func(push Push)) {
+	client.registerPushHandler(serviceId, routerId, S2CMsgHandler{
+		msgType: reflectx.GenericTypeOf[Push](),
+		handler: func(msg any) {
+			handler(msg.(Push))
+		},
+	})
+}
+
+func (c *Client) registerPushHandler(serviceId uint32, routerId uint32, handler S2CMsgHandler) {
+	serviceMap, ok := c.pushMsgHandlerMap[serviceId]
+	if !ok {
+		serviceMap = make(map[uint32]S2CMsgHandler)
+		c.pushMsgHandlerMap[serviceId] = serviceMap
+	}
+	serviceMap[routerId] = handler
+}
+
+func (c *Client) getPushHandler(serviceId uint32, routerId uint32) (S2CMsgHandler, bool) {
+	serviceMap, ok := c.pushMsgHandlerMap[serviceId]
+	if !ok {
+		return S2CMsgHandler{}, false
+	}
+	msgHandler, ok := serviceMap[routerId]
+	if !ok {
+		return S2CMsgHandler{}, false
+	}
+	return msgHandler, true
 }
