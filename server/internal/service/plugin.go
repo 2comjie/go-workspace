@@ -26,10 +26,6 @@ type (
 		PostReadRequest(session *session2.Session, req any)
 	}
 
-	PreWriteRspPlugin interface {
-		PreWriteRsp(session *session2.Session, rsp any)
-	}
-
 	HeartBeatPlugin interface {
 		HeartBeat(session *session2.Session)
 	}
