@@ -6,6 +6,7 @@ import (
 	"hutool/taskx"
 	"server/internal/codec"
 	"server/internal/net/inet"
+	"server/internal/net/kcp"
 	"server/internal/net/tcp"
 	"server/internal/net/ws"
 	router2 "server/internal/router"
@@ -23,7 +24,7 @@ type Service struct {
 	// net
 	tcpServer *tcp.Server
 	wsServer  *ws.Server
-	kcpServer *ws.Server
+	kcpServer *kcp.Server
 
 	// codec
 	serializer codec.ISerializer
@@ -63,6 +64,15 @@ func NewService(svcId uint32, opts ...Option) *Service {
 func (s *Service) StartTCPServer(host string, port int) error {
 	s.tcpServer = tcp.NewServer()
 	err := s.tcpServer.ListenAndServe(host, port, s)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (s *Service) StartKcpServer(host string, port int) error {
+	s.kcpServer = kcp.NewServer()
+	err := s.kcpServer.ListenAndServe(host, port, s)
 	if err != nil {
 		return err
 	}

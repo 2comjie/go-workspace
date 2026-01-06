@@ -1,7 +1,6 @@
 package ws
 
 import (
-	"context"
 	"errors"
 	"hutool/logx"
 	"net"
@@ -14,17 +13,12 @@ import (
 type Server struct {
 	listener *Listener
 	svc      inet.IService
-	ctx      context.Context
-	cancel   context.CancelFunc
 	wg       sync.WaitGroup
 }
 
 func NewServer() *Server {
-	ctx, cancel := context.WithCancel(context.Background())
 	return &Server{
-		ctx:    ctx,
-		cancel: cancel,
-		wg:     sync.WaitGroup{},
+		wg: sync.WaitGroup{},
 	}
 }
 
@@ -51,14 +45,12 @@ func (s *Server) serve() {
 			return
 		}
 		s.svc.OnConnStart(conn)
-		s.wg.Add(1)
 		logx.Debugf("new ws conn %s", conn.RemoteAddr())
 		go s.handleConn(conn)
 	}
 }
 
 func (s *Server) handleConn(conn *Conn) {
-	defer s.wg.Done()
 	defer conn.Close()
 
 	for {
@@ -97,7 +89,6 @@ func (s *Server) handleConn(conn *Conn) {
 
 func (s *Server) Stop() {
 	s.listener.Close()
-	s.cancel()
 	s.wg.Wait()
 	logx.Infof("ws server stop")
 }

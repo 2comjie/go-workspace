@@ -1,7 +1,6 @@
 package kcp
 
 import (
-	"context"
 	"encoding/binary"
 	"errors"
 	"hutool/bytex"
@@ -15,10 +14,12 @@ import (
 
 type Server struct {
 	listener *Listener
-	ctx      context.Context
-	cancel   context.CancelFunc
 	wg       sync.WaitGroup
 	svc      inet.IService
+}
+
+func NewServer() *Server {
+	return &Server{}
 }
 
 func (s *Server) ListenAndServe(host string, port int, svc inet.IService) error {
@@ -45,13 +46,11 @@ func (s *Server) serve() {
 		}
 		s.svc.OnConnStop(conn)
 		logx.Debugf("new kcp conn %s", conn.RemoteAddr())
-		s.wg.Add(1)
 		go s.handleConn(conn)
 	}
 }
 
 func (s *Server) handleConn(conn *Conn) {
-	defer s.wg.Done()
 	defer conn.Close()
 	lenBytes := bytex.Allocate(4)
 	defer bytex.Return(lenBytes)
@@ -92,7 +91,6 @@ func (s *Server) handleConn(conn *Conn) {
 
 func (s *Server) Stop() {
 	s.listener.Close()
-	s.cancel()
 	s.wg.Wait()
 	logx.Infof("kcp server stop")
 }

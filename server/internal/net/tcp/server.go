@@ -15,18 +15,14 @@ import (
 
 type Server struct {
 	listener *Listener
-	ctx      context.Context
 	cancel   context.CancelFunc
 	wg       sync.WaitGroup
 	svc      inet.IService
 }
 
 func NewServer() *Server {
-	ctx, cancel := context.WithCancel(context.Background())
 	return &Server{
-		ctx:    ctx,
-		cancel: cancel,
-		wg:     sync.WaitGroup{},
+		wg: sync.WaitGroup{},
 	}
 }
 
@@ -54,13 +50,11 @@ func (s *Server) serve() {
 		}
 		s.svc.OnConnStart(conn)
 		logx.Debugf("new tcp conn %s", conn.RemoteAddr())
-		s.wg.Add(1)
 		go s.handleConn(conn)
 	}
 }
 
 func (s *Server) handleConn(conn *Conn) {
-	defer s.wg.Done()
 	defer conn.Close()
 
 	lenBytes := bytex.Allocate(4)
@@ -102,7 +96,6 @@ func (s *Server) handleConn(conn *Conn) {
 
 func (s *Server) Stop() {
 	s.listener.Close()
-	s.cancel()
 	s.wg.Wait()
 	logx.Infof("tcp server stop")
 }
