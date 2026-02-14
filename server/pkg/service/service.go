@@ -185,7 +185,7 @@ func (s *Service) handleOnPacket(session *session2.Session, reqPacket codec.C2SP
 		rspPacket := codec.NewS2CRspPacket(reqId, rspBodyBytes)
 		err = s.writeAsync(session.GetConnId(), rspPacket.Bytes())
 		if err != nil {
-			logx.Errorf("push err %d %+v", session.GetConnId(), err)
+			logx.Infof("push err %d %+v", session.GetConnId(), err)
 		}
 	}
 }
