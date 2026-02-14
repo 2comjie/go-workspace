@@ -30,5 +30,5 @@ func NewService() *Service {
 func (s *Service) PostReadRequest(session *session2.Session, req any) {
 	rType := reflectx.TypeOf(req)
 	connId := session.GetConnId()
-	logx.Debugf("conn %+d req type %+v req body %+v", connId, rType, req)
+	logx.Debugf("conn %d req type %+v req body %+v", connId, rType, req)
 }
