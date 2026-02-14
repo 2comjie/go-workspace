@@ -11,6 +11,10 @@ func init() {
 	globalLog = stdlog.NewLogger()
 }
 
+func SetLogger(logger logdef.ILogger) {
+	globalLog = logger.WithSkip(1)
+}
+
 func Debug(args ...interface{}) {
 	globalLog.Debug(args...)
 }

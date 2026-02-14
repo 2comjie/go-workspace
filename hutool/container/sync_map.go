@@ -45,8 +45,8 @@ func (s *SyncMap[K, V]) Store(key K, v V) {
 }
 
 func (s *SyncMap[K, V]) LoadOrStore(key K, v V) (V, bool) {
-	v, ok := s.it.LoadOrStore(key, v)
-	return v, ok
+	actual, ok := s.it.LoadOrStore(key, v)
+	return actual.(V), ok
 }
 
 func (s *SyncMap[K, V]) LoadOrStoreNew(key K, ctor func() V, release func(V)) (V, bool) {
@@ -93,7 +93,7 @@ func (s *SyncMap[K, V]) LoadAndDelete(key K) (V, bool) {
 	if !ok {
 		return s.nilV, false
 	}
-	return v, true
+	return v.(V), true
 }
 
 func (s *SyncMap[K, V]) Delete(key K) {

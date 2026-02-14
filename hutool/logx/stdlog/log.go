@@ -38,7 +38,6 @@ func NewLogger(opts ...Option) *Logger {
 		hook:   cfg.hook,
 		level:  cfg.level,
 	}
-	l.level = logdef.LevelInfo
 	return l
 }
 
