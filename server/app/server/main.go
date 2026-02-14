@@ -5,10 +5,10 @@ import (
 	"hutool/syncx"
 	"net/http"
 	"server/app/test"
-	"server/internal/codec"
-	router2 "server/internal/router"
-	"server/internal/service"
-	session2 "server/internal/session"
+	"server/pkg/codec"
+	router2 "server/pkg/router"
+	"server/pkg/service"
+	session2 "server/pkg/session"
 	"sync/atomic"
 
 	"github.com/gorilla/websocket"
@@ -68,7 +68,7 @@ type Plugin struct {
 
 func (h Plugin) PreReadReadRequest(session *session2.Session, reqPacket codec.C2SPacket) bool {
 	uid, _ := session.Get("uid")
-	logx.Infof("new req %v", uid)
+	logx.Infof("new req_rsp %v", uid)
 	if reqPacket.ServiceId() != 0 {
 		logx.Infof("intercept")
 		return false

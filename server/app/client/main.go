@@ -4,8 +4,8 @@ import (
 	"hutool/logx"
 	"hutool/syncx"
 	"server/app/test"
-	"server/internal/codec"
-	"server/internal/net/ws"
+	"server/pkg/codec"
+	"server/pkg/net/ws"
 	"time"
 )
 
