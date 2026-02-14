@@ -56,7 +56,10 @@ func (m *Manager) BindSession(conn inet.IConn) *Session {
 
 func (m *Manager) GetSession(connId uint32) (*Session, bool) {
 	session, ok := m.connIdToSession.Load(connId)
-	return session.(*Session), ok
+	if !ok {
+		return nil, false
+	}
+	return session.(*Session), true
 }
 
 func (m *Manager) RemoveSession(connId uint32) {
