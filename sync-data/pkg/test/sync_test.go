@@ -59,7 +59,7 @@ func TestSync(t *testing.T) {
 	}
 
 	redisHandler := redis_impl.NewBaseRedisSyncHandler[User](rc, sync_def.RedisOption[User]{
-		DataRedisPrefix: "cache",
+		DataRedisPrefix: "cache:",
 		ExpireDuration:  -1,
 	})
 
@@ -76,7 +76,7 @@ func TestSync(t *testing.T) {
 		}
 	}, sync_def.SyncOption[User]{
 		BaseOption:         sync_def.BaseOption[User]{},
-		RedisLockKeyPrefix: "lock",
+		RedisLockKeyPrefix: "lock:",
 	})
 
 	// 测试配置
