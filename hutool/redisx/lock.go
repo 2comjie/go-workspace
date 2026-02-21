@@ -90,7 +90,7 @@ func (r *Lock) Unlock() {
 	}
 	r.cancel()
 	r.wg.Wait()
-	_, err := r.rc.Eval(r.ctx, `
+	_, err := r.rc.Eval(context.Background(), `
     if redis.call("GET", KEYS[1]) == ARGV[1] then
         return redis.call("DEL", KEYS[1])
     else

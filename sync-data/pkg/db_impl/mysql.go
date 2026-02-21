@@ -13,7 +13,7 @@ import (
 
 type MysqlHandler[T any] struct {
 	*sync_def.DbConfig[T]
-	Db sqlx.DB
+	Db *sqlx.DB
 
 	loadOneSql  string
 	loadOneArgs []*sync_def.DbFieldConfig
@@ -29,7 +29,7 @@ type MysqlHandler[T any] struct {
 	loadBatchArgs2 []*sync_def.DbFieldConfig
 }
 
-func NewMysqlHandler[T any](db sqlx.DB, option sync_def.DbOption[T]) *MysqlHandler[T] {
+func NewMysqlHandler[T any](db *sqlx.DB, option sync_def.DbOption[T]) *MysqlHandler[T] {
 	if option.TableName == "" {
 		option.TableName = reflectx.GenericTypeOf[T]().Name()
 	}
@@ -63,7 +63,7 @@ func (m *MysqlHandler[T]) initLoadOne() {
 	}
 
 	sb := &strings.Builder{}
-	sb.WriteString(fmt.Sprintf("select * from %s where ", m.TableName))
+	sb.WriteString(fmt.Sprintf("select * from `%s` where ", m.TableName))
 	for index, arg := range args {
 		if index != 0 {
 			sb.WriteString(" and ")
@@ -86,7 +86,7 @@ func (m *MysqlHandler[T]) initSaveOne() {
 
 	sb := &strings.Builder{}
 
-	sb.WriteString("insert into %s (")
+	sb.WriteString(fmt.Sprintf("insert into `%s` (", m.TableName))
 	for index, filedConfig := range m.Config.AllFields {
 		if index != 0 {
 			sb.WriteString(",")
@@ -122,12 +122,12 @@ func (m *MysqlHandler[T]) initDelOne() {
 	}
 	sb := &strings.Builder{}
 
-	sb.WriteString(fmt.Sprintf("delete from %s where ", m.TableName))
+	sb.WriteString(fmt.Sprintf("delete from `%s` where ", m.TableName))
 	for index, fieldConfig := range m.Config.PrimaryFields {
 		if index != 0 {
 			sb.WriteString(" and ")
 		}
-		sb.WriteString(fmt.Sprintf("`%s=?`", fieldConfig.DbFieldName))
+		sb.WriteString(fmt.Sprintf("`%s`=?", fieldConfig.DbFieldName))
 	}
 
 	m.delOneSql = sb.String()
@@ -137,7 +137,7 @@ func (m *MysqlHandler[T]) initDelOne() {
 func (m *MysqlHandler[T]) initLoadBatch() {
 	// select * from table where (key1=? and key2=? and key3=?) or (key1=? and key2=? and key3 = ? and key4 = ?)
 	sb := &strings.Builder{}
-	sb.WriteString(fmt.Sprintf("select * from %s where ", m.TableName))
+	sb.WriteString(fmt.Sprintf("select * from `%s` where ", m.TableName))
 	m.loadBatchSql1 = sb.String()
 
 	sb.Reset()

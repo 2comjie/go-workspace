@@ -44,10 +44,9 @@ type BaseConfig[T any] struct {
 
 type RedisConfig[T any] struct {
 	*BaseConfig[T]
-	DataRedisPrefix     string // redis前缀
-	DataLockRedisPrefix string // redis锁前缀
-	ExpireDuration      time.Duration
-	Rc                  redis.UniversalClient
+	DataRedisPrefix string // redis前缀
+	ExpireDuration  time.Duration
+	Rc              redis.UniversalClient
 }
 
 type DbConfig[T any] struct {
@@ -61,9 +60,8 @@ type BaseOption[T any] struct {
 
 type RedisOption[T any] struct {
 	BaseOption[T]
-	DataRedisPrefix     string // redis前缀
-	DataLockRedisPrefix string // redis锁前缀
-	ExpireDuration      time.Duration
+	DataRedisPrefix string // redis前缀
+	ExpireDuration  time.Duration
 }
 
 type DbOption[T any] struct {

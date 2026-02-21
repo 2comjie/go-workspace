@@ -85,7 +85,29 @@ func (sc *Synchronizer[T]) LoadOne(key *T, needLock bool) (*T, error) {
 	return redisData, nil
 }
 
+func (sc *Synchronizer[T]) DelOne(key *T, needLock bool) error {
+	if needLock {
+		lock := lock2.GenLock(sc.Rc, key, sc.RedisLockKeyPrefix, sc.Config)
+		err := lock.Lock()
+		if err != nil {
+			return err
+		}
+		defer lock.Unlock()
+	}
+
+	err := sc.dbHandler.DelOne(key)
+	if err != nil {
+		return err
+	}
+	err = sc.redisHandler.DelOne(key)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (sc *Synchronizer[T]) run() {
+	//go safe.Run()
 	go safe.Run(func() {
 		flushConfig := sc.flushConfigGetter()
 		timer := time.NewTimer(flushConfig.FlushInterval)
@@ -128,6 +150,9 @@ func (sc *Synchronizer[T]) flushOneKey(key *T) error {
 	data, err := sc.redisHandler.LoadOne(key)
 	if err != nil {
 		return err
+	}
+	if data == nil {
+		return nil
 	}
 
 	err = sc.dbHandler.SaveOne(data)

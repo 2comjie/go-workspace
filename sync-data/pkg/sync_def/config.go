@@ -71,6 +71,11 @@ func BuildFieldConfig[T any]() *DataConfig {
 			}
 		}
 
+		dbData, ok := field.Tag.Lookup("db")
+		if ok {
+			df.DbFieldName = dbData
+		}
+
 		fields[field.Name] = df
 	}
 

@@ -17,6 +17,17 @@ type SimpleMarker[T any] struct {
 	Rc                redis.UniversalClient
 }
 
+func NewSimpleMarker[T any](rc redis.UniversalClient, keyPrefix string, option sync_def.BaseOption[T]) *SimpleMarker[T] {
+	return &SimpleMarker[T]{
+		BaseConfig: &sync_def.BaseConfig[T]{
+			Config: sync_def.BuildFieldConfig[T](),
+			Coder:  option.Coder,
+		},
+		UpdateSetRedisKey: keyPrefix,
+		Rc:                rc,
+	}
+}
+
 func (m *SimpleMarker[T]) MarkUpdate(key *T) error {
 	markValue := m.buildMarkValue(key)
 	err := m.Rc.SAdd(context.Background(), m.UpdateSetRedisKey, markValue).Err()

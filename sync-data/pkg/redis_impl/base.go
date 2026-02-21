@@ -3,6 +3,7 @@ package redis_impl
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"hutool/convert"
 	"hutool/reflectx"
 	"strings"
@@ -28,10 +29,9 @@ func NewBaseRedisSyncHandler[T any](rc redis.UniversalClient, option sync_def.Re
 				Config: sync_def.BuildFieldConfig[T](),
 				Coder:  option.Coder,
 			},
-			DataRedisPrefix:     option.DataRedisPrefix,
-			DataLockRedisPrefix: option.DataLockRedisPrefix,
-			Rc:                  rc,
-			ExpireDuration:      option.ExpireDuration,
+			DataRedisPrefix: option.DataRedisPrefix,
+			Rc:              rc,
+			ExpireDuration:  option.ExpireDuration,
 		},
 	}
 }
@@ -39,6 +39,10 @@ func NewBaseRedisSyncHandler[T any](rc redis.UniversalClient, option sync_def.Re
 func (b *BaseRedisSyncHandler[T]) LoadOne(key *T) (*T, error) {
 	redisKey := b.GetRedisKey(key)
 	str, err := b.Rc.Get(context.Background(), redisKey).Result()
+	if errors.Is(err, redis.Nil) {
+		return nil, nil
+	}
+
 	if err != nil {
 		return nil, err
 	}
