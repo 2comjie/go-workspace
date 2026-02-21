@@ -4,5 +4,6 @@ use (
 	./chat-im
 	./game-pkg
 	./hutool
+	./sync-data
 	./server
 )

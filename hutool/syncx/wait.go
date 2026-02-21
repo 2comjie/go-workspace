@@ -3,6 +3,7 @@ package syncx
 import (
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 )
 
@@ -13,4 +14,16 @@ func WaitUntilSignaled() {
 	case <-sigChan:
 		break
 	}
+}
+
+func WaitWork(worker func(), num int) {
+	wg := sync.WaitGroup{}
+	for i := 0; i < num; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			worker()
+		}()
+	}
+	wg.Wait()
 }

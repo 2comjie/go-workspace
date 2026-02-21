@@ -20,7 +20,7 @@ func main() {
 		net.WithPlugin(svc),
 		net.WithSerializer(codec.JsonSerializer{}),
 		net.WithRouter(svc.Registry),
-		net.WithSessionOpts(session2.WithSessionExpireTime(10*time.Second)),
+		net.WithSessionOpts(session2.WithSessionExpireTime(10*time.Second), session2.WithOnSessionEnd(svc.OnSessionEnd)),
 	)
 	svc.NetService = netService
 	_ = netService.StartTCPServer("127.0.0.1", 8080)

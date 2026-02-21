@@ -2,6 +2,8 @@ package container
 
 import (
 	"fmt"
+	"hutool/logx"
+	"hutool/syncx"
 	"sync"
 	"sync/atomic"
 	"testing"
@@ -442,4 +444,40 @@ func ExampleSyncMap() {
 
 	// Output:
 	// apple: 5
+}
+
+func TestDeleteIf(t *testing.T) {
+	mp := NewSyncMap[int, int]()
+	cnt := 1000000
+	for i := 0; i < cnt; i++ {
+		mp.Store(i, i+1)
+	}
+	batch := 100
+	idx := atomic.Int32{}
+	syncx.WaitWork(func() {
+		tmp := idx.Add(1)
+		for i := 0; i < batch; i++ {
+			mp.Range(func(key int, v int) bool {
+				cur := int(tmp-1)*batch + i + 1
+				if cur == v {
+					logx.Infof("删除 %d", cur)
+					mp.Delete(key)
+					return false
+				}
+				return true
+			})
+			//mp.DeleteIf(func(key int, v int) bool {
+			//	cur := int(tmp-1)*batch + i + 1
+			//	if cur == v {
+			//		logx.Infof("删除 %d", cur)
+			//	}
+			//	return v == cur
+			//})
+		}
+	}, cnt/batch)
+
+	mp.Range(func(key int, v int) bool {
+		logx.Infof("err %d", v)
+		return true
+	})
 }

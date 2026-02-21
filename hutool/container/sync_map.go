@@ -15,6 +15,7 @@ type IMap[K comparable, V any] interface {
 	LoadAndDelete(key K) (V, bool)
 	Delete(key K)
 	Range(yield func(key K, v V) bool)
+	DeleteIf(cond func(key K, v V) bool)
 }
 
 type SyncMap[K comparable, V any] struct {
@@ -103,5 +104,14 @@ func (s *SyncMap[K, V]) Delete(key K) {
 func (s *SyncMap[K, V]) Range(yield func(key K, v V) bool) {
 	s.it.Range(func(key, value any) bool {
 		return yield(key.(K), value.(V))
+	})
+}
+
+func (s *SyncMap[K, V]) DeleteIf(cond func(key K, v V) bool) {
+	s.Range(func(key K, v V) bool {
+		if cond(key, v) {
+			s.Delete(key)
+		}
+		return true
 	})
 }

@@ -32,3 +32,11 @@ func (s *Service) PostReadRequest(session *session2.Session, req any) {
 	connId := session.GetConnId()
 	logx.Debugf("conn %d req type %+v req body %+v", connId, rType, req)
 }
+
+func (s *Service) OnSessionEnd(session *session2.Session) {
+	uid, ok := session.Get("uid")
+	if !ok {
+		return
+	}
+	s.uidToSessionId.Delete(uid.(uint32))
+}
